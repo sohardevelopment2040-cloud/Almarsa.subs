@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>حملة تجميع الرسوم لشراء كرات والالتزامات الأخرى - أغسطس 2026</title>
+
+    <!-- إعدادات التطبيق كـ PWA (يعمل كتطبيق موبايل عند الإضافة للشاشة الرئيسية) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="حملة الرسوم">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" href="icon-192.png">
+    <style>
+        body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    </style>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--bg-color);
+        }
+
+        .header h1 {
+            font-size: 1.4rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .header .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .amount-setting {
+            background: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .amount-setting label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .amount-setting input {
+            width: 80px;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card.paid { background: #f0fdf4; border-color: #bbf7d0; }
+        .stat-card.unpaid { background: #fef2f2; border-color: #fecaca; }
+        .stat-card.money { background: #eff6ff; border-color: #bfdbfe; }
+
+        .stat-card .title { font-size: 0.8rem; color: var(--text-muted); }
+        .stat-card .number { font-size: 1.2rem; font-weight: bold; margin-top: 4px; }
+
+        .stat-card.paid .number { color: var(--success); }
+        .stat-card.unpaid .number { color: var(--danger); }
+        .stat-card.money .number { color: var(--primary); }
+
+        .actions-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+
+        .btn-whatsapp { background: #25d366; color: white; }
+        .btn-whatsapp:hover { background: #1eb956; }
+
+        .btn-danger { background: #fff1f2; color: var(--danger); border: 1px solid #fecaca; }
+        .btn-danger:hover { background: #fee2e2; }
+
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .member-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .member-card:hover { background: #f8fafc; }
+        .member-card.is-paid { background: #f0fdf4; border-color: #bbf7d0; }
+
+        .member-info { display: flex; align-items: center; gap: 12px; flex: 1; }
+        .member-num { font-size: 0.85rem; color: var(--text-muted); min-width: 28px; }
+        .member-name { font-weight: 500; font-size: 0.95rem; }
+
+        .status-box {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: #fee2e2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .member-card.is-paid .status-box {
+            background: #dcfce7;
+            color: var(--success);
+            border-color: #bbf7d0;
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>حملة تجميع الرسوم لشراء كرات ⚽️ والالتزامات الأخرى 🧊</h1>
+        <div class="subtitle">أغسطس ٢٠٢٦</div>
+    </div>
+
+    <!-- تحديد المبلغ -->
+    <div class="amount-setting">
+        <label for="feeInput">قيمة الاشتراك الفردي:</label>
+        <div class="input-group">
+            <input type="number" id="feeInput" value="1" min="0" step="0.5" onchange="updateFee(this.value)">
+            <span>ريال عماني</span>
+        </div>
+    </div>
+
+    <!-- الإحصائيات -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="title">الأعضاء</div>
+            <div class="number" id="totalCount">0</div>
+        </div>
+        <div class="stat-card paid">
+            <div class="title">المسددين</div>
+            <div class="number" id="paidCount">0</div>
+        </div>
+        <div class="stat-card unpaid">
+            <div class="title">المتبقين</div>
+            <div class="number" id="unpaidCount">0</div>
+        </div>
+        <div class="stat-card money">
+            <div class="title">المبلغ المحصل</div>
+            <div class="number" id="totalAmount">0 ر.ع</div>
+        </div>
+    </div>
+
+    <!-- شريط الأزرار -->
+    <div class="actions-bar">
+        <button class="btn btn-primary" onclick="addMember()">➕ إضافة عضو</button>
+        <button class="btn btn-whatsapp" onclick="copyAndShareWhatsApp()">💬 نسخ التقرير ولصقه بالواتساب</button>
+        <button class="btn btn-danger" onclick="resetData()">🗑️ تفريغ البيانات</button>
+    </div>
+
+    <!-- قائمة الأعضاء -->
+    <div class="members-list" id="membersList"></div>
+</div>
+
+<script>
+    const defaultNames = [
+        "عبدالله سعيد", "وليد سعيد", "أحمد الخان", "أحمد ع الخان (غير موجود)",
+        "عبدالرحمن الخان", "حسين سويلم", "إبراهيم سويلم", "سعيد عبدالله",
+        "محمد عبدالله", "سالم العاقور", "يوسف العاقور", "معتصم العاقور",
+        "خالد المسكدي", "علي المسكدي", "إبراهيم سالم", "علي سالم",
+        "حسام", "عيسى عبدالله سالم", "عيسى خلفان", "محمد الدرمكي",
+        "هارون أحمد", "عيسى صالح", "أحمد سعيد", "محمد سعيد",
+        "أحمد حسن حبيب", "هلال ناصر", "سيف بالاسود", "سالم ربيع",
+        "محمد الغيثي", "عبدالله الهنداسي", "محمد الروش", "جمعة خدوم",
+        "حسن عبدالله", "خالد البسطي", "عيسى بريك", "محمد الطويل",
+        "يوسف دريهم", "أحمد البرختي", "جاسم محمد", "محمد المسكدي",
+        "حمد الرواحي", "عبدالله يوسف"
+    ];
+
+    let savedData = localStorage.getItem('campaign_members_v4');
+    let feePerMember = parseFloat(localStorage.getItem('campaign_fee_omr')) || 1;
+    let members = [];
+
+    document.getElementById('feeInput').value = feePerMember;
+
+    if (savedData && JSON.parse(savedData).length > 0) {
+        members = JSON.parse(savedData);
+    } else {
+        members = defaultNames.map(name => ({ name, paid: false }));
+        localStorage.setItem('campaign_members_v4', JSON.stringify(members));
+    }
+
+    function updateFee(val) {
+        feePerMember = parseFloat(val) || 0;
+        localStorage.setItem('campaign_fee_omr', feePerMember);
+        render();
+    }
+
+    function saveData() {
+        localStorage.setItem('campaign_members_v4', JSON.stringify(members));
+        render();
+    }
+
+    function render() {
+        const listEl = document.getElementById('membersList');
+        listEl.innerHTML = '';
+
+        let paidCount = 0;
+
+        members.forEach((m, index) => {
+            if (m.paid) paidCount++;
+
+            const card = document.createElement('div');
+            card.className = `member-card ${m.paid ? 'is-paid' : ''}`;
+            card.onclick = () => togglePaid(index);
+
+            card.innerHTML = `
+                <div class="member-info">
+                    <span class="member-num">${index + 1}.</span>
+                    <span class="member-name">${m.name}</span>
+                </div>
+                <div class="status-box">${m.paid ? '✅' : '❌'}</div>
+            `;
+            listEl.appendChild(card);
+        });
+
+        const totalMoney = paidCount * feePerMember;
+
+        document.getElementById('totalCount').innerText = members.length;
+        document.getElementById('paidCount').innerText = paidCount;
+        document.getElementById('unpaidCount').innerText = members.length - paidCount;
+        document.getElementById('totalAmount').innerText = `${totalMoney} ر.ع`;
+    }
+
+    function togglePaid(index) {
+        members[index].paid = !members[index].paid;
+        saveData();
+    }
+
+    function addMember() {
+        const name = prompt("أدخل اسم العضو الجديد:");
+        if (name && name.trim()) {
+            members.push({ name: name.trim(), paid: false });
+            saveData();
+        }
+    }
+
+    function resetData() {
+        if (confirm("هل أنت تأكد من إعادة الضبط وإعادة الجميع إلى حالة عدم السداد؟")) {
+            members = defaultNames.map(name => ({ name, paid: false }));
+            saveData();
+        }
+    }
+
+    function copyAndShareWhatsApp() {
+        const total = members.length;
+        const paid = members.filter(m => m.paid).length;
+        const unpaid = total - paid;
+        const totalMoney = paid * feePerMember;
+        const expectedMoney = total * feePerMember;
+
+        let text = `*حملة تجميع الرسوم لشراء كرات ⚽️ والالتزامات الأخرى 🧊*\n`;
+        text += `*أغسطس ٢٠٢٦*\n\n`;
+        text += `📊 *الإحصائيات:* \n`;
+        text += `▪️ قيمة الاشتراك: ${feePerMember} ريال عماني\n`;
+        text += `▪️ إجمالي الأعضاء: ${total}\n`;
+        text += `✅ المسددين: ${paid}\n`;
+        text += `❌ المتبقين: ${unpaid}\n`;
+        text += `💰 المبلغ المحصل: ${totalMoney} ر.ع من أصل ${expectedMoney} ر.ع\n\n`;
+        text += `📋 *الكشف:* \n`;
+
+        members.forEach((m, i) => {
+            text += `${i + 1}- ${m.name} ${m.paid ? '✅' : '❌'}\n`;
+        });
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert("تم نسخ التقرير بنجاح! سيتم فتح الواتساب الآن، قم بلصق الرسالة في المحادثة.");
+            window.location.href = "https://wa.me/";
+        }).catch(() => {
+            const tempInput = document.createElement("textarea");
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+            alert("تم نسخ التقرير بنجاح! قم بلصقه في الواتساب.");
+            window.location.href = "https://wa.me/";
+        });
+    }
+
+    render();
+
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        });
+    }
+</script>
+</body>
+</html>
