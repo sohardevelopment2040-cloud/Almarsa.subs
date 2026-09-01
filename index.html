@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>حملة تجميع الرسوم لشراء كرات والالتزامات الأخرى - أغسطس 2026</title>
 
-    <!-- إعدادات التطبيق كـ PWA (يعمل كتطبيق موبايل عند الإضافة للشاشة الرئيسية) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
     <meta name="mobile-web-app-capable" content="yes">
@@ -73,38 +72,6 @@
             font-size: 0.95rem;
             color: var(--text-muted);
             font-weight: 600;
-        }
-
-        .amount-setting {
-            background: #f1f5f9;
-            padding: 12px 16px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            border: 1px solid var(--border-color);
-        }
-
-        .amount-setting label {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
-
-        .input-group {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .amount-setting input {
-            width: 80px;
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            text-align: center;
-            font-size: 1rem;
-            font-weight: bold;
         }
 
         .stats-grid {
@@ -190,6 +157,21 @@
         .member-info { display: flex; align-items: center; gap: 12px; flex: 1; }
         .member-num { font-size: 0.85rem; color: var(--text-muted); min-width: 28px; }
         .member-name { font-weight: 500; font-size: 0.95rem; }
+        
+        .member-status-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .paid-amount {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--success);
+            background: #dcfce7;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
 
         .status-box {
             width: 32px;
@@ -211,6 +193,85 @@
             border-color: #bbf7d0;
         }
 
+        /* النافذة التفاعلية (Modal) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .modal h3 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            color: var(--text-main);
+        }
+
+        .modal p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            outline: none;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .btn-preset {
+            padding: 8px;
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-preset:hover {
+            background: #e2e8f0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+        }
+
         @media (max-width: 600px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -222,15 +283,6 @@
     <div class="header">
         <h1>حملة تجميع الرسوم لشراء كرات ⚽️ والالتزامات الأخرى 🧊</h1>
         <div class="subtitle">أغسطس ٢٠٢٦</div>
-    </div>
-
-    <!-- تحديد المبلغ -->
-    <div class="amount-setting">
-        <label for="feeInput">قيمة الاشتراك الفردي:</label>
-        <div class="input-group">
-            <input type="number" id="feeInput" value="1" min="0" step="0.5" onchange="updateFee(this.value)">
-            <span>ريال عماني</span>
-        </div>
     </div>
 
     <!-- الإحصائيات -->
@@ -264,6 +316,31 @@
     <div class="members-list" id="membersList"></div>
 </div>
 
+<!-- النافذة التفاعلية لإدخال المبلغ -->
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal">
+        <h3 id="modalMemberName">اسم العضو</h3>
+        <p>أدخل المبلغ المدفوع (ريال عماني):</p>
+        
+        <input type="number" id="modalAmountInput" min="0" step="0.5" placeholder="0">
+        
+        <!-- أزرار سريعة للأرقام الشائعة -->
+        <div class="preset-buttons">
+            <button class="btn-preset" onclick="setPresetAmount(1)">1 ر.ع</button>
+            <button class="btn-preset" onclick="setPresetAmount(5)">5 ر.ع</button>
+            <button class="btn-preset" onclick="setPresetAmount(10)">10 ر.ع</button>
+            <button class="btn-preset" onclick="setPresetAmount(15)">15 ر.ع</button>
+            <button class="btn-preset" onclick="setPresetAmount(20)">20 ر.ع</button>
+            <button class="btn-preset" onclick="setPresetAmount(50)">50 ر.ع</button>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="confirmPayment()">تأكيد</button>
+            <button class="btn btn-danger" style="background:#f1f5f9; color:#64748b; border:none;" onclick="cancelPayment()">إلغاء/مسح</button>
+        </div>
+    </div>
+</div>
+
 <script>
     const defaultNames = [
         "عبدالله سعيد", "وليد سعيد", "أحمد الخان", "أحمد ع الخان (غير موجود)",
@@ -279,27 +356,19 @@
         "حمد الرواحي", "عبدالله يوسف"
     ];
 
-    let savedData = localStorage.getItem('campaign_members_v4');
-    let feePerMember = parseFloat(localStorage.getItem('campaign_fee_omr')) || 1;
+    let savedData = localStorage.getItem('campaign_members_v5');
     let members = [];
-
-    document.getElementById('feeInput').value = feePerMember;
+    let selectedIndex = null;
 
     if (savedData && JSON.parse(savedData).length > 0) {
         members = JSON.parse(savedData);
     } else {
-        members = defaultNames.map(name => ({ name, paid: false }));
-        localStorage.setItem('campaign_members_v4', JSON.stringify(members));
-    }
-
-    function updateFee(val) {
-        feePerMember = parseFloat(val) || 0;
-        localStorage.setItem('campaign_fee_omr', feePerMember);
-        render();
+        members = defaultNames.map(name => ({ name, paid: false, amount: 0 }));
+        localStorage.setItem('campaign_members_v5', JSON.stringify(members));
     }
 
     function saveData() {
-        localStorage.setItem('campaign_members_v4', JSON.stringify(members));
+        localStorage.setItem('campaign_members_v5', JSON.stringify(members));
         render();
     }
 
@@ -308,71 +377,114 @@
         listEl.innerHTML = '';
 
         let paidCount = 0;
+        let totalCollected = 0;
 
         members.forEach((m, index) => {
-            if (m.paid) paidCount++;
+            const isPaid = m.paid && m.amount > 0;
+            if (isPaid) {
+                paidCount++;
+                totalCollected += parseFloat(m.amount) || 0;
+            }
 
             const card = document.createElement('div');
-            card.className = `member-card ${m.paid ? 'is-paid' : ''}`;
-            card.onclick = () => togglePaid(index);
+            card.className = `member-card ${isPaid ? 'is-paid' : ''}`;
+            card.onclick = () => openPaymentModal(index);
 
             card.innerHTML = `
                 <div class="member-info">
                     <span class="member-num">${index + 1}.</span>
                     <span class="member-name">${m.name}</span>
                 </div>
-                <div class="status-box">${m.paid ? '✅' : '❌'}</div>
+                <div class="member-status-container">
+                    ${isPaid ? `<span class="paid-amount">${m.amount} ر.ع</span>` : ''}
+                    <div class="status-box">${isPaid ? '✅' : '❌'}</div>
+                </div>
             `;
             listEl.appendChild(card);
         });
 
-        const totalMoney = paidCount * feePerMember;
-
         document.getElementById('totalCount').innerText = members.length;
         document.getElementById('paidCount').innerText = paidCount;
         document.getElementById('unpaidCount').innerText = members.length - paidCount;
-        document.getElementById('totalAmount').innerText = `${totalMoney} ر.ع`;
+        document.getElementById('totalAmount').innerText = `${totalCollected} ر.ع`;
     }
 
-    function togglePaid(index) {
-        members[index].paid = !members[index].paid;
-        saveData();
+    function openPaymentModal(index) {
+        selectedIndex = index;
+        const member = members[index];
+        document.getElementById('modalMemberName').innerText = member.name;
+        document.getElementById('modalAmountInput').value = member.amount > 0 ? member.amount : '';
+        document.getElementById('paymentModal').classList.add('active');
+        document.getElementById('modalAmountInput').focus();
+    }
+
+    function setPresetAmount(val) {
+        document.getElementById('modalAmountInput').value = val;
+    }
+
+    function confirmPayment() {
+        if (selectedIndex !== null) {
+            const val = parseFloat(document.getElementById('modalAmountInput').value);
+            if (!isNaN(val) && val > 0) {
+                members[selectedIndex].paid = true;
+                members[selectedIndex].amount = val;
+            } else {
+                members[selectedIndex].paid = false;
+                members[selectedIndex].amount = 0;
+            }
+            saveData();
+            closePaymentModal();
+        }
+    }
+
+    function cancelPayment() {
+        if (selectedIndex !== null) {
+            members[selectedIndex].paid = false;
+            members[selectedIndex].amount = 0;
+            saveData();
+            closePaymentModal();
+        }
+    }
+
+    function closePaymentModal() {
+        document.getElementById('paymentModal').classList.remove('active');
+        selectedIndex = null;
     }
 
     function addMember() {
         const name = prompt("أدخل اسم العضو الجديد:");
         if (name && name.trim()) {
-            members.push({ name: name.trim(), paid: false });
+            members.push({ name: name.trim(), paid: false, amount: 0 });
             saveData();
         }
     }
 
     function resetData() {
         if (confirm("هل أنت تأكد من إعادة الضبط وإعادة الجميع إلى حالة عدم السداد؟")) {
-            members = defaultNames.map(name => ({ name, paid: false }));
+            members = defaultNames.map(name => ({ name, paid: false, amount: 0 }));
             saveData();
         }
     }
 
     function copyAndShareWhatsApp() {
         const total = members.length;
-        const paid = members.filter(m => m.paid).length;
-        const unpaid = total - paid;
-        const totalMoney = paid * feePerMember;
-        const expectedMoney = total * feePerMember;
+        const paidMembers = members.filter(m => m.paid && m.amount > 0);
+        const paidCount = paidMembers.length;
+        const unpaidCount = total - paidCount;
+        const totalMoney = members.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
 
         let text = `*حملة تجميع الرسوم لشراء كرات ⚽️ والالتزامات الأخرى 🧊*\n`;
         text += `*أغسطس ٢٠٢٦*\n\n`;
         text += `📊 *الإحصائيات:* \n`;
-        text += `▪️ قيمة الاشتراك: ${feePerMember} ريال عماني\n`;
         text += `▪️ إجمالي الأعضاء: ${total}\n`;
-        text += `✅ المسددين: ${paid}\n`;
-        text += `❌ المتبقين: ${unpaid}\n`;
-        text += `💰 المبلغ المحصل: ${totalMoney} ر.ع من أصل ${expectedMoney} ر.ع\n\n`;
+        text += `✅ المسددين: ${paidCount}\n`;
+        text += `❌ المتبقين: ${unpaidCount}\n`;
+        text += `💰 إجمالي المبلغ المحصل: ${totalMoney} ر.ع\n\n`;
         text += `📋 *الكشف:* \n`;
 
         members.forEach((m, i) => {
-            text += `${i + 1}- ${m.name} ${m.paid ? '✅' : '❌'}\n`;
+            const isPaid = m.paid && m.amount > 0;
+            text += `${i + 1}- ${m.name} ${isPaid ? `✅ (${m.amount} ر.ع)` : '❌'}\n`;
         });
 
         navigator.clipboard.writeText(text).then(() => {
