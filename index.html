@@ -180,6 +180,17 @@
             font-weight: bold;
         }
 
+        .balance-badge {
+            background: #eff6ff;
+            color: var(--primary);
+            border: 1px solid #bfdbfe;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
         .notes-section {
             margin-top: 20px;
             padding-top: 16px;
@@ -351,6 +362,10 @@
             <div class="title">المبلغ المحصل</div>
             <div class="number" id="totalAmount">0 ر.ع</div>
         </div>
+        <div class="stat-card money">
+            <div class="title">إجمالي الرصيد الزائد</div>
+            <div class="number" id="totalBalance">0 ر.ع</div>
+        </div>
     </div>
 
     <!-- شريط الأزرار -->
@@ -377,7 +392,7 @@
         <h3 id="modalMemberName">اسم العضو</h3>
         <p>أدخل المبلغ المدفوع (ريال عماني):</p>
         
-        <input type="number" id="modalAmountInput" min="0" step="0.5" placeholder="0">
+        <input type="number" id="modalAmountInput" min="0" step="0.5" placeholder="0" oninput="autoFillBalance()">
         
         <!-- أزرار سريعة للأرقام الشائعة -->
         <div class="preset-buttons">
@@ -388,6 +403,9 @@
             <button class="btn-preset" onclick="setPresetAmount(20)">20 ر.ع</button>
             <button class="btn-preset" onclick="setPresetAmount(50)">50 ر.ع</button>
         </div>
+
+        <p style="margin-top:4px;">الرصيد المتبقي بعد هذا الشهر (يُحسب تلقائيًا، ويمكنك تعديله):</p>
+        <input type="number" id="modalBalanceInput" min="0" step="1" placeholder="0">
 
         <div class="modal-actions">
             <button class="btn btn-primary" onclick="confirmPayment()">تأكيد</button>
@@ -432,9 +450,9 @@
     const notesKey = 'campaign_general_notes_v1';
 
     if (savedData && JSON.parse(savedData).length > 0) {
-        members = JSON.parse(savedData);
+        members = JSON.parse(savedData).map(m => ({ balance: 0, ...m }));
     } else {
-        members = defaultNames.map(name => ({ name, paid: false, amount: 0 }));
+        members = defaultNames.map(name => ({ name, paid: false, amount: 0, balance: 0 }));
         localStorage.setItem('campaign_members_v5', JSON.stringify(members));
     }
 
@@ -470,17 +488,25 @@
 
         let paidCount = 0;
         let totalCollected = 0;
+        let totalBalance = 0;
 
         members.forEach((m, index) => {
-            const isPaid = m.paid && m.amount > 0;
-            if (isPaid) {
-                paidCount++;
-                totalCollected += parseFloat(m.amount) || 0;
-            }
+            const hasBalance = (m.balance || 0) > 0;
+            const isPaidMonth = m.paid && m.amount > 0;
+            const isCovered = isPaidMonth || hasBalance;
+
+            if (isCovered) paidCount++;
+            if (isPaidMonth) totalCollected += parseFloat(m.amount) || 0;
+            totalBalance += (m.balance || 0);
 
             const card = document.createElement('div');
-            card.className = `member-card ${isPaid ? 'is-paid' : ''}`;
+            card.className = `member-card ${isCovered ? 'is-paid' : ''}`;
             card.onclick = () => openPaymentModal(index);
+
+            const statusHtml = hasBalance
+                ? `<div class="balance-badge">الرصيد: ${m.balance} ر.ع</div>`
+                : `${isPaidMonth ? renderCheckMarks(m.amount) : ''}
+                   <div class="status-box">${isPaidMonth ? '✓' : '❌'}</div>`;
 
             card.innerHTML = `
                 <div class="member-info">
@@ -488,8 +514,7 @@
                     <span class="member-name">${m.name}</span>
                 </div>
                 <div class="member-status-container">
-                    ${isPaid ? renderCheckMarks(m.amount) : ''}
-                    <div class="status-box">${isPaid ? '✓' : '❌'}</div>
+                    ${statusHtml}
                 </div>
             `;
             listEl.appendChild(card);
@@ -499,6 +524,7 @@
         document.getElementById('paidCount').innerText = paidCount;
         document.getElementById('unpaidCount').innerText = members.length - paidCount;
         document.getElementById('totalAmount').innerText = `${totalCollected} ر.ع`;
+        document.getElementById('totalBalance').innerText = `${totalBalance} ر.ع`;
     }
 
     function openPaymentModal(index) {
@@ -506,17 +532,31 @@
         const member = members[index];
         document.getElementById('modalMemberName').innerText = member.name;
         document.getElementById('modalAmountInput').value = member.amount > 0 ? member.amount : '';
+        document.getElementById('modalBalanceInput').value = member.balance > 0 ? member.balance : '';
         document.getElementById('paymentModal').classList.add('active');
         document.getElementById('modalAmountInput').focus();
     }
 
     function setPresetAmount(val) {
         document.getElementById('modalAmountInput').value = val;
+        autoFillBalance();
+    }
+
+    function autoFillBalance() {
+        const amt = parseFloat(document.getElementById('modalAmountInput').value);
+        const balInput = document.getElementById('modalBalanceInput');
+        if (!isNaN(amt) && amt > 1) {
+            // المبلغ يغطي هذا الشهر + أشهر إضافية، فالرصيد المتبقي = المبلغ - 1
+            balInput.value = Math.floor(amt) - 1;
+        } else {
+            balInput.value = '';
+        }
     }
 
     function confirmPayment() {
         if (selectedIndex !== null) {
             const val = parseFloat(document.getElementById('modalAmountInput').value);
+            const balVal = parseInt(document.getElementById('modalBalanceInput').value) || 0;
             if (!isNaN(val) && val > 0) {
                 members[selectedIndex].paid = true;
                 members[selectedIndex].amount = val;
@@ -524,6 +564,7 @@
                 members[selectedIndex].paid = false;
                 members[selectedIndex].amount = 0;
             }
+            members[selectedIndex].balance = Math.max(0, balVal);
             saveData();
             closePaymentModal();
         }
@@ -556,16 +597,21 @@
     function confirmAddMember() {
         const name = document.getElementById('newMemberNameInput').value.trim();
         if (name) {
-            members.push({ name: name, paid: false, amount: 0 });
+            members.push({ name: name, paid: false, amount: 0, balance: 0 });
             saveData();
         }
         closeAddMemberModal();
     }
 
     function resetData() {
-        if (confirm("هل أنت متأكد من تفريغ جميع البيانات وإعادة الجميع إلى حالة عدم السداد، بما في ذلك الملاحظات؟")) {
-            // إعادة الأعضاء إلى الحالة الافتراضية
-            members = defaultNames.map(name => ({ name, paid: false, amount: 0 }));
+        if (confirm("هل أنت متأكد من بدء شهر جديد؟ سيتم إرجاع جميع الأعضاء إلى حالة عدم السداد لهذا الشهر، وخصم ريال واحد تلقائيًا من رصيد كل عضو لديه رصيد مسبق، بالإضافة إلى تفريغ الملاحظات.")) {
+            // إعادة تعيين حالة الدفع الشهري مع الإبقاء على الأسماء (بما فيها المُضافة يدويًا) وخصم ريال من الرصيد
+            members = members.map(m => ({
+                name: m.name,
+                paid: false,
+                amount: 0,
+                balance: Math.max(0, (m.balance || 0) - 1)
+            }));
 
             // تفريغ حقل الملاحظات وحذفها من الحفظ المحلي
             const notesEl = document.getElementById('generalNotes');
@@ -579,10 +625,10 @@
 
     function copyAndShareWhatsApp() {
         const total = members.length;
-        const paidMembers = members.filter(m => m.paid && m.amount > 0);
+        const paidMembers = members.filter(m => (m.paid && m.amount > 0) || (m.balance || 0) > 0);
         const paidCount = paidMembers.length;
         const unpaidCount = total - paidCount;
-        const totalMoney = members.reduce((sum, m) => sum + (parseFloat(m.amount) || 0), 0);
+        const totalMoney = members.reduce((sum, m) => sum + ((m.paid && m.amount > 0) ? (parseFloat(m.amount) || 0) : 0), 0);
 
         let text = `*حملة تجميع الرسوم لشراء كرات ⚽️ والالتزامات الأخرى 🧊*\n`;
         text += `*أغسطس ٢٠٢٦*\n\n`;
@@ -594,9 +640,12 @@
         text += `📋 *الكشف:* \n`;
 
         members.forEach((m, i) => {
-            const isPaid = m.paid && m.amount > 0;
-            const checks = isPaid ? '✓'.repeat(getCheckCount(m.amount)) : '❌';
-            text += `${i + 1}- ${m.name} ${checks}\n`;
+            const hasBalance = (m.balance || 0) > 0;
+            const isPaidMonth = m.paid && m.amount > 0;
+            const status = hasBalance
+                ? `(الرصيد: ${m.balance} ر.ع)`
+                : (isPaidMonth ? '✓'.repeat(getCheckCount(m.amount)) : '❌');
+            text += `${i + 1}- ${m.name} ${status}\n`;
         });
 
         const notes = (document.getElementById('generalNotes')?.value || '').trim();
